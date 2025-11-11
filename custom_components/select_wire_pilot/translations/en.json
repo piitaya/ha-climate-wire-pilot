@@ -1,0 +1,51 @@
+{
+  "title": "Select wire pilot thermostat",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Select wire pilot thermostat",
+        "description": "Create a climate entity that controls the temperature via a switch and sensor.",
+        "data": {
+          "heater": "Select entity",
+          "sensor": "Temperature sensor"
+        },
+        "data_description": {
+          "heater": "Select entity used to control the heating.",
+          "sensor": "Temperature sensor that reflect the current temperature."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "sensor": "Temperature sensor"
+        },
+        "data_description": {
+          "sensor": "Temperature sensor that reflect the current temperature."
+        }
+      }
+    }
+  },
+  "services": {
+    "reload": {
+      "name": "Reload",
+      "description": "Reloads select wire pilot thermostats from the YAML-configuration."
+    }
+  },
+  "entity": {
+    "climate": {
+      "select_wire_pilot": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "comfort-1": "Comfort -1 \u00b0C",
+              "comfort-2": "Comfort -2 \u00b0C"
+            }
+          }
+        }
+      }
+    }
+  }
+}

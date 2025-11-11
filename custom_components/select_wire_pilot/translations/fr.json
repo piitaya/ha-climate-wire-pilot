@@ -1,0 +1,51 @@
+{
+  "title": "Thermostat Select fil pilote",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ajouter un thermostat Select fil pilote",
+        "description": "Créer un entité thermostat à partir d'une entité de sélection.",
+        "data": {
+          "heater": "Entité de sélection",
+          "sensor": "Capteur de température"
+        },
+        "data_description": {
+          "heater": "Entité de sélection utilisée pour contrôler le chauffage.",
+          "sensor": "Capteur de température qui reflète la température actuelle."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "sensor": "Capteur de température"
+        },
+        "data_description": {
+          "sensor": "Capteur de température qui reflète la température actuelle."
+        }
+      }
+    }
+  },
+  "services": {
+    "reload": {
+      "name": "Recharger",
+      "description": "Recharge la configuration YAML de l'intégration Select fil pilote."
+    }
+  },
+  "entity": {
+    "climate": {
+      "select_wire_pilot": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "comfort-1": "Confort -1 \u00b0C",
+              "comfort-2": "Confort -2 \u00b0C"
+            }
+          }
+        }
+      }
+    }
+  }
+}
