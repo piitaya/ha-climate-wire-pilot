@@ -149,7 +149,7 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
 
     _attr_should_poll = False
     _attr_translation_key: str = "climate_wire_pilot"
-    _attr_name: None | str = None
+    _attr_name = None
     _enable_turn_on_off_backwards_compatibility = False
 
     def __init__(
