@@ -7,11 +7,15 @@
         "description": "Créer une entité thermostat qui contrôle un chauffage fil pilote via une entité de sélection et un capteur de température.",
         "data": {
           "heater": "Entité de sélection",
-          "sensor": "Capteur de température"
+          "temperature_sensor": "Capteur de température",
+          "power_sensor": "Capteur de puissance",
+          "power_threshold": "Seuil de puissance"
         },
         "data_description": {
           "heater": "Entité de sélection utilisée pour contrôler les modes de chauffage fil pilote.",
-          "sensor": "Capteur de température qui reflète la température actuelle."
+          "temperature_sensor": "Capteur de température qui reflète la température actuelle.",
+          "power_sensor": "Capteur de puissance pour surveiller la consommation du radiateur et détecter l'action HVAC.",
+          "power_threshold": "Seuil de puissance en Watts au-dessus duquel le radiateur est considéré en chauffe."
         }
       }
     }
@@ -20,10 +24,14 @@
     "step": {
       "init": {
         "data": {
-          "sensor": "Capteur de température"
+          "temperature_sensor": "Capteur de température",
+          "power_sensor": "Capteur de puissance",
+          "power_threshold": "Seuil de puissance"
         },
         "data_description": {
-          "sensor": "Capteur de température qui reflète la température actuelle."
+          "temperature_sensor": "Capteur de température qui reflète la température actuelle.",
+          "power_sensor": "Capteur de puissance pour surveiller la consommation du radiateur et détecter l'action HVAC.",
+          "power_threshold": "Seuil de puissance en Watts au-dessus duquel le radiateur est considéré en chauffe."
         }
       }
     }

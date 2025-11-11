@@ -7,11 +7,15 @@
         "description": "Create a climate entity that controls a wire pilot heater via a select entity and temperature sensor.",
         "data": {
           "heater": "Select entity",
-          "sensor": "Temperature sensor"
+          "temperature_sensor": "Temperature sensor",
+          "power_sensor": "Power sensor",
+          "power_threshold": "Power threshold"
         },
         "data_description": {
           "heater": "Select entity used to control the wire pilot heating modes.",
-          "sensor": "Temperature sensor that reflects the current temperature."
+          "temperature_sensor": "Temperature sensor that reflects the current temperature.",
+          "power_sensor": "Power sensor to monitor heater power consumption for HVAC action detection.",
+          "power_threshold": "Power threshold in Watts above which the heater is considered to be heating."
         }
       }
     }
@@ -20,10 +24,14 @@
     "step": {
       "init": {
         "data": {
-          "sensor": "Temperature sensor"
+          "temperature_sensor": "Temperature sensor",
+          "power_sensor": "Power sensor",
+          "power_threshold": "Power threshold"
         },
         "data_description": {
-          "sensor": "Temperature sensor that reflects the current temperature."
+          "temperature_sensor": "Temperature sensor that reflects the current temperature.",
+          "power_sensor": "Power sensor to monitor heater power consumption for HVAC action detection.",
+          "power_threshold": "Power threshold in Watts above which the heater is considered to be heating."
         }
       }
     }

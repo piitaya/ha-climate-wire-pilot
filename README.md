@@ -86,8 +86,6 @@ You can optionally configure a power sensor to monitor the actual heating activi
    - The threshold determines when the heater is considered to be actively heating
    - Example: Set to 50W if your heater consumes more than 50W when heating
 
-This is particularly useful for wire pilot systems where the heating state is not directly reported by the select entity.
-
 ## Lovelace
 
 You can use the [climate-mode-entity-row](https://github.com/piitaya/lovelace-climate-mode-entity-row) card in your lovelace dashboard to easily switch between modes.
