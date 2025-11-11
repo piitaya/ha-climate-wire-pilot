@@ -1,16 +1,16 @@
 {
-  "title": "Thermostat Select fil pilote",
+  "title": "Thermostat Climate fil pilote",
   "config": {
     "step": {
       "user": {
-        "title": "Ajouter un thermostat Select fil pilote",
-        "description": "Créer un entité thermostat à partir d'une entité de sélection.",
+        "title": "Ajouter un thermostat Climate fil pilote",
+        "description": "Créer une entité thermostat qui contrôle un chauffage fil pilote via une entité de sélection et un capteur de température.",
         "data": {
           "heater": "Entité de sélection",
           "sensor": "Capteur de température"
         },
         "data_description": {
-          "heater": "Entité de sélection utilisée pour contrôler le chauffage.",
+          "heater": "Entité de sélection utilisée pour contrôler les modes de chauffage fil pilote.",
           "sensor": "Capteur de température qui reflète la température actuelle."
         }
       }
@@ -31,12 +31,12 @@
   "services": {
     "reload": {
       "name": "Recharger",
-      "description": "Recharge la configuration YAML de l'intégration Select fil pilote."
+      "description": "Recharge la configuration YAML de l'intégration Climate fil pilote."
     }
   },
   "entity": {
     "climate": {
-      "select_wire_pilot": {
+      "climate_wire_pilot": {
         "state_attributes": {
           "preset_mode": {
             "state": {

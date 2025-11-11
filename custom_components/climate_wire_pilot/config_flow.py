@@ -1,4 +1,4 @@
-"""Config flow for Select Wire Pilot thermostat."""
+"""Config flow for Climate Wire Pilot thermostat."""
 
 from __future__ import annotations
 

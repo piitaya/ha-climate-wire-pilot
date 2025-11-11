@@ -1,6 +1,6 @@
 {
-  "domain": "select_wire_pilot",
-  "name": "Select wire pilot",
+  "domain": "climate_wire_pilot",
+  "name": "Climate Wire Pilot",
   "config_flow": true,
   "documentation": "https://github.com/piitaya/ha-climate-wire-pilot",
   "issue_tracker": "https://github.com/piitaya/ha-climate-wire-pilot/issues",

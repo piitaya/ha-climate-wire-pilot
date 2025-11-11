@@ -1,16 +1,16 @@
-# Home Assistant Component for Select Wire Pilot
+# Home Assistant Component for Climate Wire Pilot
 
-Home Assistant Component for Select Wire Pilot
+Home Assistant Component for Climate Wire Pilot
 
 ## Introduction
 
-Some ZHA thermostats (e.g. Legrand) are not recognized as a thermostat in Home Assistant but as a select
+Some ZHA thermostats (e.g. Legrand) are not recognized as a thermostat in Home Assistant but as a select entity.
 
-This integrtion create an `climate` entity using the `select` entity for easy control of your heater.
+This integration creates a `climate` entity using the `select` entity for easy control of your wire pilot heater.
 
 ## Installation
 
-You can convert the `select` to a `climate` entity by searching "Select Wire Pilot" in the integration page or helper page.
+You can convert the `select` to a `climate` entity by searching "Climate Wire Pilot" in the integration page or helper page.
 
 ## YAML configuration
 
@@ -30,7 +30,7 @@ The unique id is recommended to allow icon, entity_id or name changes from the U
 
 ```yaml
 climate:
-  - platform: select_wire_pilot
+  - platform: climate_wire_pilot
     heater: select.heater_living_room_modes
 ```
 
@@ -38,7 +38,7 @@ with optional sensor
 
 ```yaml
 climate:
-  - platform: select_wire_pilot
+  - platform: climate_wire_pilot
     heater: select.heater_living_room_modes
     sensor: sensor.temperature_living_room
 ```
@@ -51,12 +51,12 @@ If you want to have 2 climate with the same heater, you must specify the `unique
 
 ```yaml
 climate:
-  - platform: select_wire_pilot
+  - platform: climate_wire_pilot
     heater: select.heater_living_room_modes
-    unique_id: select_heater_living_room_1
-  - platform: select_wire_pilot
+    unique_id: climate_heater_living_room_1
+  - platform: climate_wire_pilot
     heater: select.heater_living_room_modes
-    unique_id: select_heater_living_room_2
+    unique_id: climate_heater_living_room_2
 ```
 
 ## Lovelace

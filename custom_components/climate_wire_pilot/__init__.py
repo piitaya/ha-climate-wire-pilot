@@ -1,4 +1,4 @@
-"""Select wire pilot component."""
+"""Climate Wire Pilot component."""
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -8,7 +8,7 @@ from homeassistant.helpers.device import (
 )
 
 CONF_HEATER = "heater"
-DOMAIN = "select_wire_pilot"
+DOMAIN = "climate_wire_pilot"
 PLATFORMS = [Platform.CLIMATE]
 
 

@@ -1,4 +1,4 @@
-"""Platform for Select Wire Pilot."""
+"""Platform for Climate Wire Pilot."""
 
 import logging
 import math
@@ -133,7 +133,7 @@ async def _async_setup_config(
 
     async_add_entities(
         [
-            SelectWirePilotClimate(
+            ClimateWirePilotClimate(
                 hass,
                 name,
                 heater_entity_id,
@@ -144,11 +144,11 @@ async def _async_setup_config(
     )
 
 
-class SelectWirePilotClimate(ClimateEntity, RestoreEntity):
-    """Representation of a Select Wire Pilot device."""
+class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
+    """Representation of a Climate Wire Pilot device."""
 
     _attr_should_poll = False
-    _attr_translation_key: str = "select_wire_pilot"
+    _attr_translation_key: str = "climate_wire_pilot"
     _attr_name: None | str = None
     _enable_turn_on_off_backwards_compatibility = False
 
@@ -184,7 +184,7 @@ class SelectWirePilotClimate(ClimateEntity, RestoreEntity):
 
         self._attr_has_entity_name = has_entity_name
         self._attr_unique_id = (
-            unique_id if unique_id else "Select_wire_pilot_" + heater_entity_id
+            unique_id if unique_id else "climate_wire_pilot_" + heater_entity_id
         )
 
     async def async_added_to_hass(self) -> None:
