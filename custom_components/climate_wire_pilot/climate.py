@@ -13,6 +13,7 @@ from homeassistant.components.climate import (
     PRESET_NONE,
     ClimateEntity,
     ClimateEntityFeature,
+    HVACAction,
     HVACMode,
 )
 from homeassistant.components.select import (
@@ -54,7 +55,9 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = "Thermostat"
 
 CONF_HEATER = "heater"
-CONF_SENSOR = "sensor"
+CONF_TEMPERATURE_SENSOR = "temperature_sensor"
+CONF_POWER_SENSOR = "power_sensor"
+CONF_POWER_THRESHOLD = "power_threshold"
 
 PRESET_COMFORT_1 = "comfort-1"
 PRESET_COMFORT_2 = "comfort-2"
@@ -83,7 +86,9 @@ PRESET_TO_SELECT_OPTION = {v: k for k, v in SELECT_OPTION_TO_PRESET.items()}
 PLATFORM_SCHEMA_COMMON = vol.Schema(
     {
         vol.Required(CONF_HEATER): cv.entity_id,
-        vol.Optional(CONF_SENSOR): cv.entity_id,
+        vol.Optional(CONF_TEMPERATURE_SENSOR): cv.entity_id,
+        vol.Optional(CONF_POWER_SENSOR): cv.entity_id,
+        vol.Optional(CONF_POWER_THRESHOLD): vol.Coerce(float),
         vol.Optional(CONF_NAME): cv.string,
         vol.Optional(CONF_UNIQUE_ID): cv.string,
     }
@@ -129,7 +134,9 @@ async def _async_setup_config(
     """Set up the wire pilot climate platform."""
     name: str | None = config.get(CONF_NAME)
     heater_entity_id: str = config.get(CONF_HEATER)
-    sensor_entity_id: str | None = config.get(CONF_SENSOR)
+    temperature_sensor_entity_id: str | None = config.get(CONF_TEMPERATURE_SENSOR)
+    power_sensor_entity_id: str | None = config.get(CONF_POWER_SENSOR)
+    power_threshold: float | None = config.get(CONF_POWER_THRESHOLD)
 
     async_add_entities(
         [
@@ -137,7 +144,9 @@ async def _async_setup_config(
                 hass,
                 name,
                 heater_entity_id,
-                sensor_entity_id,
+                temperature_sensor_entity_id,
+                power_sensor_entity_id,
+                power_threshold,
                 unique_id,
             )
         ]
@@ -157,7 +166,9 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
         hass: HomeAssistant,
         name: str | None,
         heater_entity_id: str,
-        sensor_entity_id: str | None,
+        temperature_sensor_entity_id: str | None,
+        power_sensor_entity_id: str | None,
+        power_threshold: float | None,
         unique_id: str | None,
     ) -> None:
         """Initialize the climate device."""
@@ -179,8 +190,11 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
             self._attr_name = name
 
         self.heater_entity_id = heater_entity_id
-        self.sensor_entity_id = sensor_entity_id
+        self.temperature_sensor_entity_id = temperature_sensor_entity_id
+        self.power_sensor_entity_id = power_sensor_entity_id
+        self.power_threshold = power_threshold
         self._cur_temperature = None
+        self._cur_power = None
 
         self._attr_has_entity_name = has_entity_name
         self._attr_unique_id = (
@@ -192,10 +206,17 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
         await super().async_added_to_hass()
 
         # Add listener
-        if self.sensor_entity_id is not None:
+        if self.temperature_sensor_entity_id is not None:
             self.async_on_remove(
                 async_track_state_change_event(
-                    self.hass, [self.sensor_entity_id], self._async_sensor_changed
+                    self.hass, [self.temperature_sensor_entity_id], self._async_sensor_changed
+                )
+            )
+
+        if self.power_sensor_entity_id is not None:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass, [self.power_sensor_entity_id], self._async_power_sensor_changed
                 )
             )
 
@@ -208,13 +229,22 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
         @callback
         def _async_startup(_: Event | None = None) -> None:
             """Init on startup."""
-            if self.sensor_entity_id is not None:
-                sensor_state = self.hass.states.get(self.sensor_entity_id)
+            if self.temperature_sensor_entity_id is not None:
+                sensor_state = self.hass.states.get(self.temperature_sensor_entity_id)
                 if sensor_state and sensor_state.state not in (
                     STATE_UNAVAILABLE,
                     STATE_UNKNOWN,
                 ):
                     self._async_update_temp(sensor_state)
+                    self.async_write_ha_state()
+
+            if self.power_sensor_entity_id is not None:
+                power_sensor_state = self.hass.states.get(self.power_sensor_entity_id)
+                if power_sensor_state and power_sensor_state.state not in (
+                    STATE_UNAVAILABLE,
+                    STATE_UNKNOWN,
+                ):
+                    self._async_update_power(power_sensor_state)
                     self.async_write_ha_state()
 
         if self.hass.state is CoreState.running:
@@ -323,6 +353,27 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
             return HVACMode.OFF
         return HVACMode.HEAT
 
+    @property
+    def hvac_action(self) -> HVACAction | None:
+        """Return the current running hvac operation."""
+        # If we don't have a power sensor or threshold configured, we can't determine the action
+        if self.power_sensor_entity_id is None or self.power_threshold is None:
+            return None
+
+        # If power data is not available yet
+        if self._cur_power is None:
+            return None
+
+        # If the HVAC mode is OFF, return IDLE
+        if self.hvac_mode == HVACMode.OFF:
+            return HVACAction.IDLE
+
+        # Determine if heating based on power consumption
+        if self._cur_power > self.power_threshold:
+            return HVACAction.HEATING
+        else:
+            return HVACAction.IDLE
+
     async def _async_sensor_changed(self, event: Event[EventStateChangedData]) -> None:
         """Handle temperature changes."""
         new_state = event.data["new_state"]
@@ -330,6 +381,15 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
             return
 
         self._async_update_temp(new_state)
+        self.async_write_ha_state()
+
+    async def _async_power_sensor_changed(self, event: Event[EventStateChangedData]) -> None:
+        """Handle power sensor changes."""
+        new_state = event.data["new_state"]
+        if new_state is None or new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            return
+
+        self._async_update_power(new_state)
         self.async_write_ha_state()
 
     @callback
@@ -355,6 +415,16 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
             self._cur_temperature = cur_temp
         except ValueError as ex:
             _LOGGER.error("Unable to update from temperature sensor: %s", ex)
+
+    @callback
+    def _async_update_power(self, state: State):
+        try:
+            cur_power = float(state.state)
+            if not math.isfinite(cur_power):
+                raise ValueError(f"Power sensor has illegal state {state.state}")
+            self._cur_power = cur_power
+        except ValueError as ex:
+            _LOGGER.error("Unable to update from power sensor: %s", ex)
 
     async def _async_set_select_option(self, option):
         """Set option for select entity."""

@@ -16,12 +16,25 @@ from homeassistant.helpers.schema_config_entry_flow import (
     wrapped_entity_config_entry_title,
 )
 
-from .climate import CONF_HEATER, CONF_SENSOR, DOMAIN
+from .climate import CONF_HEATER, CONF_TEMPERATURE_SENSOR, CONF_POWER_SENSOR, CONF_POWER_THRESHOLD, DOMAIN
 
 OPTIONS_SCHEMA = {
-    vol.Optional(CONF_SENSOR): selector.EntitySelector(
+    vol.Optional(CONF_TEMPERATURE_SENSOR): selector.EntitySelector(
         selector.EntitySelectorConfig(
             domain=SENSOR_DOMAIN, device_class=SensorDeviceClass.TEMPERATURE
+        )
+    ),
+    vol.Optional(CONF_POWER_SENSOR): selector.EntitySelector(
+        selector.EntitySelectorConfig(
+            domain=SENSOR_DOMAIN, device_class=SensorDeviceClass.POWER
+        )
+    ),
+    vol.Optional(CONF_POWER_THRESHOLD, default=0): selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=0,
+            max=10000,
+            unit_of_measurement="W",
+            mode=selector.NumberSelectorMode.BOX,
         )
     ),
 }
