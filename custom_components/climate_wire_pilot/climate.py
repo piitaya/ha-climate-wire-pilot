@@ -16,12 +16,18 @@ from homeassistant.components.climate import (
     HVACAction,
     HVACMode,
 )
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,
+    DOMAIN as LIGHT_DOMAIN,
+    SERVICE_TURN_ON as LIGHT_SERVICE_TURN_ON,
+)
 from homeassistant.components.select import (
     ATTR_OPTION,
+    ATTR_OPTIONS,
     DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
 )
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_NAME,
@@ -38,54 +44,59 @@ from homeassistant.core import (
     HomeAssistant,
     State,
     callback,
+    split_entity_id,
 )
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import entity_registry as er, issue_registry as ir
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device import async_entity_id_to_device
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.reload import async_setup_reload_service
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
-from . import DOMAIN, PLATFORMS
+from . import CONF_HEATER, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "Thermostat"
-
-CONF_HEATER = "heater"
 CONF_TEMPERATURE_SENSOR = "temperature_sensor"
 CONF_POWER_SENSOR = "power_sensor"
 CONF_POWER_THRESHOLD = "power_threshold"
 
+HEATER_DOMAINS = [LIGHT_DOMAIN, SELECT_DOMAIN]
+
 PRESET_COMFORT_1 = "comfort-1"
 PRESET_COMFORT_2 = "comfort-2"
 
-# Select entity option names
-SELECT_OPTION_OFF = "Off"
-SELECT_OPTION_FROST_PROTECTION = "FrostProtection"
-SELECT_OPTION_ECO = "Eco"
-SELECT_OPTION_COMFORT_MINUS_2 = "ComfortMinus2"
-SELECT_OPTION_COMFORT_MINUS_1 = "ComfortMinus1"
-SELECT_OPTION_COMFORT = "Comfort"
-
-# Direct mapping from select options to climate presets
-SELECT_OPTION_TO_PRESET = {
-    SELECT_OPTION_OFF: PRESET_NONE,
-    SELECT_OPTION_FROST_PROTECTION: PRESET_AWAY,
-    SELECT_OPTION_ECO: PRESET_ECO,
-    SELECT_OPTION_COMFORT_MINUS_2: PRESET_COMFORT_2,
-    SELECT_OPTION_COMFORT_MINUS_1: PRESET_COMFORT_1,
-    SELECT_OPTION_COMFORT: PRESET_COMFORT,
+# Select options of each preset, as named by ZHA and Zigbee2MQTT
+PRESET_SELECT_OPTIONS = {
+    PRESET_NONE: ("Off", "off"),
+    PRESET_AWAY: ("FrostProtection", "frost_protection"),
+    PRESET_ECO: ("Eco", "eco"),
+    PRESET_COMFORT_2: ("ComfortMinus2", "comfort_-2"),
+    PRESET_COMFORT_1: ("ComfortMinus1", "comfort_-1"),
+    PRESET_COMFORT: ("Comfort", "comfort"),
 }
 
-# Direct mapping from climate presets to select options
-PRESET_TO_SELECT_OPTION = {v: k for k, v in SELECT_OPTION_TO_PRESET.items()}
+SELECT_OPTION_TO_PRESET = {
+    option: preset
+    for preset, options in PRESET_SELECT_OPTIONS.items()
+    for option in options
+}
+
+# Light brightness (0-99) upper bound of each preset
+LIGHT_VALUE_TO_PRESET = [
+    (10, PRESET_NONE),
+    (20, PRESET_AWAY),
+    (30, PRESET_ECO),
+    (40, PRESET_COMFORT_2),
+    (50, PRESET_COMFORT_1),
+    (99, PRESET_COMFORT),
+]
+
+PRESET_TO_LIGHT_VALUE = {preset: value for value, preset in LIGHT_VALUE_TO_PRESET}
 
 PLATFORM_SCHEMA_COMMON = vol.Schema(
     {
-        vol.Required(CONF_HEATER): cv.entity_id,
+        vol.Required(CONF_HEATER): cv.entity_domain(HEATER_DOMAINS),
         vol.Optional(CONF_TEMPERATURE_SENSOR): cv.entity_id,
         vol.Optional(CONF_POWER_SENSOR): cv.entity_id,
         vol.Optional(CONF_POWER_THRESHOLD): vol.Coerce(float),
@@ -97,17 +108,34 @@ PLATFORM_SCHEMA_COMMON = vol.Schema(
 PLATFORM_SCHEMA = CLIMATE_PLATFORM_SCHEMA.extend(PLATFORM_SCHEMA_COMMON.schema)
 
 
+def select_preset_options(options: list[str]) -> dict[str, str]:
+    """Return the select option to use for each supported preset."""
+    return {
+        SELECT_OPTION_TO_PRESET[option]: option
+        for option in options
+        if option in SELECT_OPTION_TO_PRESET
+    }
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Initialize config entry."""
-    await _async_setup_config(
-        hass,
-        PLATFORM_SCHEMA_COMMON(dict(config_entry.options)),
-        config_entry.entry_id,
-        async_add_entities,
+    config = PLATFORM_SCHEMA_COMMON(dict(config_entry.options))
+
+    async_add_entities(
+        [
+            HEATER_DOMAIN_TO_CLIMATE[split_entity_id(config[CONF_HEATER])[0]](
+                hass,
+                config[CONF_HEATER],
+                config.get(CONF_TEMPERATURE_SENSOR),
+                config.get(CONF_POWER_SENSOR),
+                config.get(CONF_POWER_THRESHOLD),
+                config_entry.entry_id,
+            )
+        ]
     )
 
 
@@ -117,59 +145,62 @@ async def async_setup_platform(
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
-    """Set up the generic thermostat platform."""
+    """Import the YAML configuration into a config entry."""
+    import_data = {
+        key: config[key]
+        for key in (
+            CONF_HEATER,
+            CONF_TEMPERATURE_SENSOR,
+            CONF_POWER_SENSOR,
+            CONF_POWER_THRESHOLD,
+            CONF_NAME,
+        )
+        if key in config
+    }
+    import_data[CONF_UNIQUE_ID] = config.get(
+        CONF_UNIQUE_ID, f"climate_wire_pilot_{config[CONF_HEATER]}"
+    )
+    hass.async_create_task(_async_import_yaml(hass, import_data))
 
-    await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
-    await _async_setup_config(
-        hass, config, config.get(CONF_UNIQUE_ID), async_add_entities
+
+async def _async_import_yaml(hass: HomeAssistant, import_data: ConfigType) -> None:
+    await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_IMPORT}, data=import_data
+    )
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        "deprecated_yaml",
+        is_fixable=False,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="deprecated_yaml",
     )
 
 
-async def _async_setup_config(
-    hass: HomeAssistant,
-    config: ConfigType,
-    unique_id: str | None,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up the wire pilot climate platform."""
-    name: str | None = config.get(CONF_NAME)
-    heater_entity_id: str = config.get(CONF_HEATER)
-    temperature_sensor_entity_id: str | None = config.get(CONF_TEMPERATURE_SENSOR)
-    power_sensor_entity_id: str | None = config.get(CONF_POWER_SENSOR)
-    power_threshold: float | None = config.get(CONF_POWER_THRESHOLD)
-
-    async_add_entities(
-        [
-            ClimateWirePilotClimate(
-                hass,
-                name,
-                heater_entity_id,
-                temperature_sensor_entity_id,
-                power_sensor_entity_id,
-                power_threshold,
-                unique_id,
-            )
-        ]
-    )
-
-
-class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
+class ClimateWirePilotClimate(ClimateEntity):
     """Representation of a Climate Wire Pilot device."""
 
     _attr_should_poll = False
     _attr_translation_key: str = "climate_wire_pilot"
     _attr_name = None
+    _attr_preset_modes = [
+        PRESET_COMFORT,
+        PRESET_COMFORT_1,
+        PRESET_COMFORT_2,
+        PRESET_ECO,
+        PRESET_AWAY,
+        PRESET_NONE,
+    ]
     _enable_turn_on_off_backwards_compatibility = False
 
     def __init__(
         self,
         hass: HomeAssistant,
-        name: str | None,
         heater_entity_id: str,
         temperature_sensor_entity_id: str | None,
         power_sensor_entity_id: str | None,
         power_threshold: float | None,
-        unique_id: str | None,
+        unique_id: str,
     ) -> None:
         """Initialize the climate device."""
 
@@ -179,9 +210,6 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
 
         self.device_entry = async_entity_id_to_device(hass, heater_entity_id)
 
-        if name:
-            self._attr_name = name
-
         self.heater_entity_id = heater_entity_id
         self.temperature_sensor_entity_id = temperature_sensor_entity_id
         self.power_sensor_entity_id = power_sensor_entity_id
@@ -190,9 +218,7 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
         self._cur_power = None
 
         self._attr_has_entity_name = has_entity_name
-        self._attr_unique_id = (
-            unique_id if unique_id else "climate_wire_pilot_" + heater_entity_id
-        )
+        self._attr_unique_id = unique_id
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added."""
@@ -254,9 +280,6 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
             | ClimateEntityFeature.TURN_ON
         )
 
-    def update(self) -> None:
-        """Update unit attributes."""
-
     # Temperature
     @property
     def temperature_unit(self) -> str:
@@ -269,54 +292,34 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
         return self._cur_temperature
 
     @property
-    def select_option(self) -> str | None:
-        """Return current option for select entity."""
+    def available(self) -> bool:
+        """Return if the heater is available."""
         state = self.hass.states.get(self.heater_entity_id)
-
-        if state is None:
-            return None
-
-        return state.state
+        return state is not None and state.state not in (
+            STATE_UNAVAILABLE,
+            STATE_UNKNOWN,
+        )
 
     # Presets
     @property
-    def preset_modes(self) -> list[str] | None:
-        """List of available preset modes."""
-        return [
-            PRESET_COMFORT,
-            PRESET_COMFORT_1,
-            PRESET_COMFORT_2,
-            PRESET_ECO,
-            PRESET_AWAY,
-            PRESET_NONE,
-        ]
-
-    @property
     def preset_mode(self) -> str | None:
         """Preset current mode."""
-        option = self.select_option
-        if option is None:
+        state = self.hass.states.get(self.heater_entity_id)
+        if state is None:
             return None
 
-        preset = SELECT_OPTION_TO_PRESET.get(option)
-        if preset is None:
-            _LOGGER.warning(
-                "Unknown select option '%s' for entity %s",
-                option,
-                self.heater_entity_id,
-            )
-            return PRESET_NONE
+        return self._heater_state_to_preset(state)
 
-        return preset
+    def _heater_state_to_preset(self, state: State) -> str | None:
+        raise NotImplementedError
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set preset mode."""
-        option = PRESET_TO_SELECT_OPTION.get(preset_mode)
-        if option is None:
+        if preset_mode not in self.preset_modes:
             _LOGGER.error("Unknown preset mode '%s'", preset_mode)
             return
 
-        await self._async_set_select_option(option)
+        await self._async_set_heater_preset(preset_mode)
 
     # Modes
     @property
@@ -327,45 +330,35 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
         if hvac_mode == HVACMode.HEAT:
-            option = SELECT_OPTION_COMFORT
+            preset = PRESET_COMFORT
         elif hvac_mode == HVACMode.OFF:
-            option = SELECT_OPTION_OFF
+            preset = PRESET_NONE
         else:
             _LOGGER.error("Unknown HVAC mode '%s'", hvac_mode)
             return
 
-        await self._async_set_select_option(option)
+        await self._async_set_heater_preset(preset)
 
     @property
     def hvac_mode(self) -> HVACMode | None:
         """Return hvac operation ie. heat, off mode."""
-        option = self.select_option
-        if option is None:
+        preset = self.preset_mode
+        if preset is None:
             return None
-        if option == SELECT_OPTION_OFF:
+        if preset == PRESET_NONE:
             return HVACMode.OFF
         return HVACMode.HEAT
 
     @property
     def hvac_action(self) -> HVACAction | None:
         """Return the current running hvac operation."""
-        # If we don't have a power sensor or threshold configured, we can't determine the action
-        if self.power_sensor_entity_id is None or self.power_threshold is None:
-            return None
-
-        # If power data is not available yet
-        if self._cur_power is None:
-            return None
-
-        # If the HVAC mode is OFF, return IDLE
         if self.hvac_mode == HVACMode.OFF:
-            return HVACAction.IDLE
-
-        # Determine if heating based on power consumption
+            return HVACAction.OFF
+        if self.power_threshold is None or self._cur_power is None:
+            return None
         if self._cur_power > self.power_threshold:
             return HVACAction.HEATING
-        else:
-            return HVACAction.IDLE
+        return HVACAction.IDLE
 
     async def _async_sensor_changed(self, event: Event[EventStateChangedData]) -> None:
         """Handle temperature changes."""
@@ -393,12 +386,6 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
             return
         self.async_write_ha_state()
 
-    async def _async_temperature_changed(self, entity_id, old_state, new_state) -> None:
-        if new_state is None:
-            return
-        self._async_update_temp(new_state)
-        self.async_write_ha_state()
-
     @callback
     def _async_update_temp(self, state: State):
         try:
@@ -419,10 +406,59 @@ class ClimateWirePilotClimate(ClimateEntity, RestoreEntity):
         except ValueError as ex:
             _LOGGER.error("Unable to update from power sensor: %s", ex)
 
-    async def _async_set_select_option(self, option):
-        """Set option for select entity."""
-        data = {
-            ATTR_ENTITY_ID: self.heater_entity_id,
-            ATTR_OPTION: option,
-        }
-        await self.hass.services.async_call(SELECT_DOMAIN, SERVICE_SELECT_OPTION, data)
+    async def _async_set_heater_preset(self, preset: str) -> None:
+        raise NotImplementedError
+
+
+class LightWirePilotClimate(ClimateWirePilotClimate):
+    """Wire pilot thermostat controlled by the brightness of a light."""
+
+    def _heater_state_to_preset(self, state: State) -> str:
+        brightness = state.attributes.get(ATTR_BRIGHTNESS)
+        value = 0 if brightness is None else round(brightness / 255 * 99)
+
+        for max_value, preset in LIGHT_VALUE_TO_PRESET:
+            if value <= max_value:
+                return preset
+        return PRESET_COMFORT
+
+    async def _async_set_heater_preset(self, preset: str) -> None:
+        await self.hass.services.async_call(
+            LIGHT_DOMAIN,
+            LIGHT_SERVICE_TURN_ON,
+            {
+                ATTR_ENTITY_ID: self.heater_entity_id,
+                ATTR_BRIGHTNESS: PRESET_TO_LIGHT_VALUE[preset] * 255 / 99,
+            },
+        )
+
+
+class SelectWirePilotClimate(ClimateWirePilotClimate):
+    """Wire pilot thermostat controlled by the option of a select."""
+
+    def _heater_state_to_preset(self, state: State) -> str | None:
+        return SELECT_OPTION_TO_PRESET.get(state.state)
+
+    async def _async_set_heater_preset(self, preset: str) -> None:
+        state = self.hass.states.get(self.heater_entity_id)
+        options = state.attributes.get(ATTR_OPTIONS, []) if state else []
+        option = select_preset_options(options).get(preset)
+        if option is None:
+            _LOGGER.error(
+                "No option for preset '%s' on entity %s",
+                preset,
+                self.heater_entity_id,
+            )
+            return
+
+        await self.hass.services.async_call(
+            SELECT_DOMAIN,
+            SERVICE_SELECT_OPTION,
+            {ATTR_ENTITY_ID: self.heater_entity_id, ATTR_OPTION: option},
+        )
+
+
+HEATER_DOMAIN_TO_CLIMATE: dict[str, type[ClimateWirePilotClimate]] = {
+    LIGHT_DOMAIN: LightWirePilotClimate,
+    SELECT_DOMAIN: SelectWirePilotClimate,
+}

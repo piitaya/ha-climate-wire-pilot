@@ -4,20 +4,23 @@
     "step": {
       "user": {
         "title": "Ajouter un thermostat Climate fil pilote",
-        "description": "Créer une entité thermostat qui contrôle un chauffage fil pilote via une entité de sélection et un capteur de température.",
+        "description": "Créer une entité thermostat qui contrôle un chauffage fil pilote via une entité de sélection ou une lumière.",
         "data": {
-          "heater": "Entité de sélection",
+          "heater": "Chauffage",
           "temperature_sensor": "Capteur de température",
           "power_sensor": "Capteur de puissance",
           "power_threshold": "Seuil de puissance"
         },
         "data_description": {
-          "heater": "Entité de sélection utilisée pour contrôler les modes de chauffage fil pilote.",
+          "heater": "Entité utilisée pour contrôler les modes fil pilote : une entité de sélection (ex. Legrand) ou une lumière (ex. Qubino ZMNHJD1).",
           "temperature_sensor": "Capteur de température qui reflète la température actuelle.",
           "power_sensor": "Capteur de puissance pour surveiller la consommation du radiateur et détecter l'action HVAC.",
           "power_threshold": "Seuil de puissance en Watts au-dessus duquel le radiateur est considéré en chauffe."
         }
       }
+    },
+    "error": {
+      "unsupported_select": "Cette entité de sélection n'expose pas les modes fil pilote (Off, Hors-gel, Eco, Confort -2, Confort -1, Confort)."
     }
   },
   "options": {
@@ -36,24 +39,26 @@
       }
     }
   },
-  "services": {
-    "reload": {
-      "name": "Recharger",
-      "description": "Recharge la configuration YAML de l'intégration Climate fil pilote."
-    }
-  },
   "entity": {
     "climate": {
       "climate_wire_pilot": {
         "state_attributes": {
           "preset_mode": {
             "state": {
-              "comfort-1": "Confort -1 \u00b0C",
-              "comfort-2": "Confort -2 \u00b0C"
+              "comfort-1": "Confort -1 °C",
+              "comfort-2": "Confort -2 °C",
+              "away": "Hors-gel",
+              "none": "Arrêt"
             }
           }
         }
       }
+    }
+  },
+  "issues": {
+    "deprecated_yaml": {
+      "title": "La configuration YAML de Climate fil pilote va être supprimée",
+      "description": "Vos thermostats Climate fil pilote configurés en YAML ont été importés dans l'interface.\n\nSupprimez les plateformes `climate_wire_pilot` de votre fichier `configuration.yaml` et redémarrez Home Assistant pour résoudre ce problème."
     }
   }
 }
