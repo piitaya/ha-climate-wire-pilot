@@ -41,7 +41,7 @@
   },
   "entity": {
     "climate": {
-      "climate_wire_pilot": {
+      "pilot_wire": {
         "state_attributes": {
           "preset_mode": {
             "state": {
@@ -53,12 +53,6 @@
           }
         }
       }
-    }
-  },
-  "issues": {
-    "deprecated_yaml": {
-      "title": "La configuration YAML des thermostats fil pilote va être supprimée",
-      "description": "Vos thermostats fil pilote configurés en YAML ont été importés dans l'interface.\n\nSupprimez les plateformes `climate_wire_pilot` de votre fichier `configuration.yaml` et redémarrez Home Assistant pour résoudre ce problème."
     }
   }
 }

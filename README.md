@@ -1,19 +1,19 @@
-# Home Assistant Component for Climate Wire Pilot
+# Pilot Wire for Home Assistant
 
-![Climate Wire Pilot logo](custom_components/climate_wire_pilot/brand/icon.png)
+![Pilot Wire logo](custom_components/pilot_wire/brand/icon.png)
 
 [Version française](README.fr.md)
 
-Home Assistant climate for wire pilot heaters: Qubino ZMNHJD1, Legrand and NodOn (ZHA, Zigbee2MQTT).
+Home Assistant thermostat for pilot wire (fil pilote) heaters: Qubino ZMNHJD1, Legrand and NodOn (ZHA, Zigbee2MQTT).
 
 ## Introduction
 
-Some wire pilot modules are not recognized as a thermostat in Home Assistant:
+Some pilot wire modules are not recognized as a thermostat in Home Assistant:
 
 - Zigbee modules (Legrand, NodOn, Adeo, VAV) are exposed as a `select` entity, by ZHA or Zigbee2MQTT.
 - The Qubino ZMNHJD1 is exposed as a `light` entity, where the brightness selects the mode (see [Qubino and the light entity](#qubino-and-the-light-entity)).
 
-This integration creates a `climate` entity from the `select` or `light` entity for easy control of your wire pilot heater.
+This integration creates a `climate` entity from the `select` or `light` entity for easy control of your pilot wire heater.
 
 The climate has 2 modes:
 
@@ -45,23 +45,23 @@ If your module can't be picked when adding a thermostat, open an issue with the 
 
 ### HACS
 
-[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=piitaya&repository=ha-climate-wire-pilot&category=integration)
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=piitaya&repository=ha-pilot-wire&category=integration)
 
-Or in HACS, add `https://github.com/piitaya/ha-climate-wire-pilot` as a custom repository with the "Integration" type. Then download Climate Wire Pilot and restart Home Assistant.
+Or in HACS, add `https://github.com/piitaya/ha-pilot-wire` as a custom repository with the "Integration" type. Then download Pilot Wire and restart Home Assistant.
 
 ### Manual
 
-Copy the `custom_components/climate_wire_pilot` folder into the `custom_components` folder of your Home Assistant configuration, then restart Home Assistant.
+Copy the `custom_components/pilot_wire` folder into the `custom_components` folder of your Home Assistant configuration, then restart Home Assistant.
 
 ## Configuration
 
-[![Open your Home Assistant instance and start setting up Climate Wire Pilot.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=climate_wire_pilot)
+[![Open your Home Assistant instance and start setting up Pilot Wire.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=pilot_wire)
 
-Or search "Climate Wire Pilot" in the integration page or helper page, then pick the `select` or `light` entity of your heater.
+Or search "Pilot wire thermostat" in the integration page or helper page, then pick the `select` or `light` entity of your heater.
 
 ## Power Sensor & HVAC Action
 
-You can optionally configure a power sensor to monitor the actual heating activity of your wire pilot heater. This feature allows the climate entity to display the real-time heating status (`hvac_action`):
+You can optionally configure a power sensor to monitor the actual heating activity of your pilot wire heater. This feature allows the climate entity to display the real-time heating status (`hvac_action`):
 
 - **HVAC Action: Heating** - When power consumption is above the configured threshold
 - **HVAC Action: Idle** - When power consumption is below the threshold
@@ -91,7 +91,3 @@ This integration hides that light and translates the brightness for you:
 | Comfort          | 51 to 100% |
 
 When adding a thermostat, only lights from a Qubino device are listed.
-
-## YAML configuration
-
-YAML configuration is deprecated. Existing `climate_wire_pilot` platforms in `configuration.yaml` are imported into the UI on startup, keeping their entity ID and name. A repair issue then asks you to remove them from `configuration.yaml`.

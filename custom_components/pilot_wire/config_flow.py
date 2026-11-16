@@ -1,4 +1,4 @@
-"""Config flow for Climate Wire Pilot thermostat."""
+"""Config flow for Pilot Wire."""
 
 from __future__ import annotations
 
@@ -10,8 +10,6 @@ import voluptuous as vol
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.components.select import ATTR_OPTIONS, DOMAIN as SELECT_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN, SensorDeviceClass
-from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.const import CONF_UNIQUE_ID
 from homeassistant.core import HomeAssistant, State, split_entity_id
 from homeassistant.helpers import entity_registry as er, selector
 from homeassistant.helpers.device import async_entity_id_to_device
@@ -118,16 +116,8 @@ OPTIONS_FLOW = {
 class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     """Handle a config or options flow."""
 
-    MINOR_VERSION = 2
-
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
-
-    async def async_step_import(self, import_data: dict[str, Any]) -> ConfigFlowResult:
-        """Import a thermostat from YAML."""
-        await self.async_set_unique_id(import_data[CONF_UNIQUE_ID])
-        self._abort_if_unique_id_configured()
-        return self.async_create_entry(data=import_data)
 
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title and hide the wrapped entity if registered."""

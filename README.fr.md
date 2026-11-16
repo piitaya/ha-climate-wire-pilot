@@ -1,6 +1,6 @@
-# Climate Wire Pilot pour Home Assistant
+# Pilot Wire pour Home Assistant
 
-![Logo Climate Wire Pilot](custom_components/climate_wire_pilot/brand/icon.png)
+![Logo Pilot Wire](custom_components/pilot_wire/brand/icon.png)
 
 [English version](README.md)
 
@@ -45,17 +45,17 @@ Si votre module n'apparaît pas quand vous ajoutez un thermostat, ouvrez une iss
 
 ### HACS
 
-[![Ouvrir votre instance Home Assistant et afficher ce dépôt dans HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=piitaya&repository=ha-climate-wire-pilot&category=integration)
+[![Ouvrir votre instance Home Assistant et afficher ce dépôt dans HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=piitaya&repository=ha-pilot-wire&category=integration)
 
-Ou dans HACS, ajoutez `https://github.com/piitaya/ha-climate-wire-pilot` comme dépôt personnalisé de type « Intégration ». Téléchargez ensuite Climate Wire Pilot et redémarrez Home Assistant.
+Ou dans HACS, ajoutez `https://github.com/piitaya/ha-pilot-wire` comme dépôt personnalisé de type « Intégration ». Téléchargez ensuite Pilot Wire et redémarrez Home Assistant.
 
 ### Manuelle
 
-Copiez le dossier `custom_components/climate_wire_pilot` dans le dossier `custom_components` de votre configuration Home Assistant, puis redémarrez Home Assistant.
+Copiez le dossier `custom_components/pilot_wire` dans le dossier `custom_components` de votre configuration Home Assistant, puis redémarrez Home Assistant.
 
 ## Configuration
 
-[![Ouvrir votre instance Home Assistant et configurer Climate Wire Pilot.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=climate_wire_pilot)
+[![Ouvrir votre instance Home Assistant et configurer Pilot Wire.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=pilot_wire)
 
 Ou cherchez « Thermostat fil pilote » dans la page des intégrations ou des entrées, puis choisissez l'entité `select` ou `light` de votre radiateur.
 
@@ -91,7 +91,3 @@ Cette intégration masque cette lumière et convertit la luminosité pour vous :
 | Confort    | 51 à 100 %    |
 
 Quand vous ajoutez un thermostat, seules les lumières d'un appareil Qubino sont proposées.
-
-## Configuration YAML
-
-La configuration YAML est dépréciée. Les plateformes `climate_wire_pilot` présentes dans `configuration.yaml` sont importées dans l'interface au démarrage, en gardant leur entity ID et leur nom. Une réparation vous demande ensuite de les supprimer de `configuration.yaml`.
