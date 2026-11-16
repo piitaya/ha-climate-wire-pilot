@@ -1,9 +1,9 @@
 {
-  "title": "Thermostat Climate fil pilote",
+  "title": "Thermostat fil pilote",
   "config": {
     "step": {
       "user": {
-        "title": "Ajouter un thermostat Climate fil pilote",
+        "title": "Ajouter un thermostat fil pilote",
         "description": "Créer une entité thermostat qui contrôle un chauffage fil pilote via une entité de sélection ou une lumière.",
         "data": {
           "heater": "Chauffage",
@@ -57,8 +57,8 @@
   },
   "issues": {
     "deprecated_yaml": {
-      "title": "La configuration YAML de Climate fil pilote va être supprimée",
-      "description": "Vos thermostats Climate fil pilote configurés en YAML ont été importés dans l'interface.\n\nSupprimez les plateformes `climate_wire_pilot` de votre fichier `configuration.yaml` et redémarrez Home Assistant pour résoudre ce problème."
+      "title": "La configuration YAML des thermostats fil pilote va être supprimée",
+      "description": "Vos thermostats fil pilote configurés en YAML ont été importés dans l'interface.\n\nSupprimez les plateformes `climate_wire_pilot` de votre fichier `configuration.yaml` et redémarrez Home Assistant pour résoudre ce problème."
     }
   }
 }

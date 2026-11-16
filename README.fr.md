@@ -57,7 +57,7 @@ Copiez le dossier `custom_components/climate_wire_pilot` dans le dossier `custom
 
 [![Ouvrir votre instance Home Assistant et configurer Climate Wire Pilot.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=climate_wire_pilot)
 
-Ou cherchez « Climate Wire Pilot » dans la page des intégrations ou des entrées, puis choisissez l'entité `select` ou `light` de votre radiateur.
+Ou cherchez « Thermostat fil pilote » dans la page des intégrations ou des entrées, puis choisissez l'entité `select` ou `light` de votre radiateur.
 
 ## Capteur de puissance et action HVAC
 
