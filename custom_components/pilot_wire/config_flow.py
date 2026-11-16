@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.components.select import ATTR_OPTIONS, DOMAIN as SELECT_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN, SensorDeviceClass
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import HomeAssistant, State, split_entity_id
 from homeassistant.helpers import entity_registry as er, selector
 from homeassistant.helpers.device import async_entity_id_to_device
@@ -118,6 +119,11 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
 
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
+
+    async def async_step_import(self, import_data: dict[str, Any]) -> ConfigFlowResult:
+        """Import a thermostat from Qubino Wire Pilot."""
+        self._async_abort_entries_match({CONF_HEATER: import_data[CONF_HEATER]})
+        return self.async_create_entry(data=import_data)
 
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title and hide the wrapped entity if registered."""
