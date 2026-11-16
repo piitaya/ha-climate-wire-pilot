@@ -7,6 +7,6 @@
   "integration_type": "helper",
   "iot_class": "local_polling",
   "dependencies": ["light", "select", "sensor"],
-  "version": "1.0.0",
+  "version": "2.0.0",
   "codeowners": ["@piitaya"]
 }
