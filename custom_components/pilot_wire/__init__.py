@@ -1,8 +1,8 @@
 """Pilot Wire integration."""
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import MAJOR_VERSION, MINOR_VERSION, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_ENTITY_ID, MAJOR_VERSION, MINOR_VERSION, Platform
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device import async_entity_id_to_device_id
 from homeassistant.helpers.helper_integration import async_handle_source_entity_changes
@@ -17,6 +17,9 @@ PLATFORMS = [Platform.CLIMATE]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up from a config entry."""
+    if CONF_ENTITY_ID in entry.options:
+        _async_adopt_imported_entity(hass, entry)
+
     def set_heater_entity_id_or_uuid(source_entity_id: str) -> None:
         hass.config_entries.async_update_entry(
             entry,
@@ -43,6 +46,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(config_entry_update_listener))
     return True
+
+
+@callback
+def _async_adopt_imported_entity(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Move the entity of the imported thermostat to this config entry."""
+    options = dict(entry.options)
+    entity_id = options.pop(CONF_ENTITY_ID)
+
+    registry = er.async_get(hass)
+    if registry.async_get(entity_id):
+        registry.async_update_entity_platform(
+            entity_id,
+            DOMAIN,
+            new_config_entry_id=entry.entry_id,
+            new_unique_id=entry.entry_id,
+        )
+
+    hass.config_entries.async_update_entry(entry, options=options)
 
 
 async def config_entry_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
