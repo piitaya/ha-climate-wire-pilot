@@ -1,12 +1,12 @@
 {
   "domain": "climate_wire_pilot",
   "name": "Climate Wire Pilot",
+  "codeowners": ["@piitaya"],
   "config_flow": true,
+  "dependencies": ["light", "select", "sensor"],
   "documentation": "https://github.com/piitaya/ha-climate-wire-pilot",
-  "issue_tracker": "https://github.com/piitaya/ha-climate-wire-pilot/issues",
   "integration_type": "helper",
   "iot_class": "local_polling",
-  "dependencies": ["light", "select", "sensor"],
-  "version": "2.0.0",
-  "codeowners": ["@piitaya"]
+  "issue_tracker": "https://github.com/piitaya/ha-climate-wire-pilot/issues",
+  "version": "2.0.0"
 }
