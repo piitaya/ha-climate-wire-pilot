@@ -2,6 +2,8 @@
 
 ![Climate Wire Pilot logo](custom_components/climate_wire_pilot/brand/icon.png)
 
+[Version française](README.fr.md)
+
 Home Assistant climate for wire pilot heaters: Qubino ZMNHJD1, Legrand and NodOn (ZHA, Zigbee2MQTT).
 
 ## Introduction
