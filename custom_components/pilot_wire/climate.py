@@ -1,4 +1,4 @@
-"""Platform for Climate Wire Pilot."""
+"""Climate platform for Pilot Wire."""
 
 import logging
 import math
@@ -6,7 +6,6 @@ import math
 import voluptuous as vol
 
 from homeassistant.components.climate import (
-    PLATFORM_SCHEMA as CLIMATE_PLATFORM_SCHEMA,
     PRESET_AWAY,
     PRESET_COMFORT,
     PRESET_ECO,
@@ -27,11 +26,9 @@ from homeassistant.components.select import (
     DOMAIN as SELECT_DOMAIN,
     SERVICE_SELECT_OPTION,
 )
-from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    CONF_NAME,
-    CONF_UNIQUE_ID,
     EVENT_HOMEASSISTANT_START,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
@@ -46,14 +43,13 @@ from homeassistant.core import (
     callback,
     split_entity_id,
 )
-from homeassistant.helpers import entity_registry as er, issue_registry as ir
+from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device import async_entity_id_to_device
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
-from . import CONF_HEATER, DOMAIN
+from . import CONF_HEATER
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -94,18 +90,14 @@ LIGHT_VALUE_TO_PRESET = [
 
 PRESET_TO_LIGHT_VALUE = {preset: value for value, preset in LIGHT_VALUE_TO_PRESET}
 
-PLATFORM_SCHEMA_COMMON = vol.Schema(
+OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HEATER): cv.entity_domain(HEATER_DOMAINS),
         vol.Optional(CONF_TEMPERATURE_SENSOR): cv.entity_id,
         vol.Optional(CONF_POWER_SENSOR): cv.entity_id,
         vol.Optional(CONF_POWER_THRESHOLD): vol.Coerce(float),
-        vol.Optional(CONF_NAME): cv.string,
-        vol.Optional(CONF_UNIQUE_ID): cv.string,
     }
 )
-
-PLATFORM_SCHEMA = CLIMATE_PLATFORM_SCHEMA.extend(PLATFORM_SCHEMA_COMMON.schema)
 
 
 def select_preset_options(options: list[str]) -> dict[str, str]:
@@ -123,7 +115,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Initialize config entry."""
-    config = PLATFORM_SCHEMA_COMMON(dict(config_entry.options))
+    config = OPTIONS_SCHEMA(dict(config_entry.options))
 
     async_add_entities(
         [
@@ -139,49 +131,11 @@ async def async_setup_entry(
     )
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> None:
-    """Import the YAML configuration into a config entry."""
-    import_data = {
-        key: config[key]
-        for key in (
-            CONF_HEATER,
-            CONF_TEMPERATURE_SENSOR,
-            CONF_POWER_SENSOR,
-            CONF_POWER_THRESHOLD,
-            CONF_NAME,
-        )
-        if key in config
-    }
-    import_data[CONF_UNIQUE_ID] = config.get(
-        CONF_UNIQUE_ID, f"climate_wire_pilot_{config[CONF_HEATER]}"
-    )
-    hass.async_create_task(_async_import_yaml(hass, import_data))
-
-
-async def _async_import_yaml(hass: HomeAssistant, import_data: ConfigType) -> None:
-    await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": SOURCE_IMPORT}, data=import_data
-    )
-    ir.async_create_issue(
-        hass,
-        DOMAIN,
-        "deprecated_yaml",
-        is_fixable=False,
-        severity=ir.IssueSeverity.WARNING,
-        translation_key="deprecated_yaml",
-    )
-
-
-class ClimateWirePilotClimate(ClimateEntity):
-    """Representation of a Climate Wire Pilot device."""
+class PilotWireClimate(ClimateEntity):
+    """Thermostat of a pilot wire heater."""
 
     _attr_should_poll = False
-    _attr_translation_key: str = "climate_wire_pilot"
+    _attr_translation_key = "pilot_wire"
     _attr_name = None
     _attr_preset_modes = [
         PRESET_COMFORT,
@@ -410,8 +364,8 @@ class ClimateWirePilotClimate(ClimateEntity):
         raise NotImplementedError
 
 
-class LightWirePilotClimate(ClimateWirePilotClimate):
-    """Wire pilot thermostat controlled by the brightness of a light."""
+class LightPilotWireClimate(PilotWireClimate):
+    """Pilot wire thermostat controlled by the brightness of a light."""
 
     def _heater_state_to_preset(self, state: State) -> str:
         brightness = state.attributes.get(ATTR_BRIGHTNESS)
@@ -433,8 +387,8 @@ class LightWirePilotClimate(ClimateWirePilotClimate):
         )
 
 
-class SelectWirePilotClimate(ClimateWirePilotClimate):
-    """Wire pilot thermostat controlled by the option of a select."""
+class SelectPilotWireClimate(PilotWireClimate):
+    """Pilot wire thermostat controlled by the option of a select."""
 
     def _heater_state_to_preset(self, state: State) -> str | None:
         return SELECT_OPTION_TO_PRESET.get(state.state)
@@ -458,7 +412,7 @@ class SelectWirePilotClimate(ClimateWirePilotClimate):
         )
 
 
-HEATER_DOMAIN_TO_CLIMATE: dict[str, type[ClimateWirePilotClimate]] = {
-    LIGHT_DOMAIN: LightWirePilotClimate,
-    SELECT_DOMAIN: SelectWirePilotClimate,
+HEATER_DOMAIN_TO_CLIMATE: dict[str, type[PilotWireClimate]] = {
+    LIGHT_DOMAIN: LightPilotWireClimate,
+    SELECT_DOMAIN: SelectPilotWireClimate,
 }

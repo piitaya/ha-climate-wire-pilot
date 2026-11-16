@@ -1,10 +1,10 @@
 {
-  "title": "Climate Wire Pilot thermostat",
+  "title": "Pilot wire thermostat",
   "config": {
     "step": {
       "user": {
-        "title": "Add Climate Wire Pilot thermostat",
-        "description": "Create a climate entity that controls a wire pilot heater via a select or light entity.",
+        "title": "Add pilot wire thermostat",
+        "description": "Create a climate entity that controls a pilot wire heater via a select or light entity.",
         "data": {
           "heater": "Heater",
           "temperature_sensor": "Temperature sensor",
@@ -12,7 +12,7 @@
           "power_threshold": "Power threshold"
         },
         "data_description": {
-          "heater": "Entity used to control the wire pilot modes: a select entity (e.g. Legrand) or a light entity (e.g. Qubino ZMNHJD1).",
+          "heater": "Entity used to control the pilot wire modes: a select entity (e.g. Legrand) or a light entity (e.g. Qubino ZMNHJD1).",
           "temperature_sensor": "Temperature sensor that reflects the current temperature.",
           "power_sensor": "Power sensor to monitor heater power consumption for HVAC action detection.",
           "power_threshold": "Power threshold in Watts above which the heater is considered to be heating."
@@ -20,7 +20,7 @@
       }
     },
     "error": {
-      "unsupported_select": "This select entity does not expose the wire pilot modes (Off, Frost protection, Eco, Comfort -2, Comfort -1, Comfort)."
+      "unsupported_select": "This select entity does not expose the pilot wire modes (Off, Frost protection, Eco, Comfort -2, Comfort -1, Comfort)."
     }
   },
   "options": {
@@ -41,7 +41,7 @@
   },
   "entity": {
     "climate": {
-      "climate_wire_pilot": {
+      "pilot_wire": {
         "state_attributes": {
           "preset_mode": {
             "state": {
@@ -53,12 +53,6 @@
           }
         }
       }
-    }
-  },
-  "issues": {
-    "deprecated_yaml": {
-      "title": "The Climate Wire Pilot YAML configuration is being removed",
-      "description": "Your Climate Wire Pilot thermostats configured in YAML have been imported into the UI.\n\nRemove the `climate_wire_pilot` platforms from your `configuration.yaml` file and restart Home Assistant to fix this issue."
     }
   }
 }

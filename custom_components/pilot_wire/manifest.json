@@ -1,0 +1,12 @@
+{
+  "domain": "pilot_wire",
+  "name": "Pilot Wire",
+  "codeowners": ["@piitaya"],
+  "config_flow": true,
+  "dependencies": ["light", "select", "sensor"],
+  "documentation": "https://github.com/piitaya/ha-pilot-wire",
+  "integration_type": "helper",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/piitaya/ha-pilot-wire/issues",
+  "version": "3.0.0"
+}

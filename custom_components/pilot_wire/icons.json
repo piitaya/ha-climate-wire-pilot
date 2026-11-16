@@ -1,7 +1,7 @@
 {
   "entity": {
     "climate": {
-      "climate_wire_pilot": {
+      "pilot_wire": {
         "state_attributes": {
           "preset_mode": {
             "state": {
