@@ -1,8 +1,9 @@
 """Climate Wire Pilot component."""
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_NAME, CONF_UNIQUE_ID, Platform
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device import async_entity_id_to_device_id
 from homeassistant.helpers.helper_integration import async_handle_source_entity_changes
 
@@ -25,6 +26,8 @@ PLATFORMS = [Platform.CLIMATE]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up from a config entry."""
+    if CONF_UNIQUE_ID in entry.options:
+        _async_adopt_yaml_entity(hass, entry)
 
     def set_heater_entity_id_or_uuid(source_entity_id: str) -> None:
         hass.config_entries.async_update_entry(
@@ -52,6 +55,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(config_entry_update_listener))
     return True
+
+
+@callback
+def _async_adopt_yaml_entity(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Move the entity created from YAML to the config entry imported from it."""
+    options = dict(entry.options)
+    yaml_unique_id = options.pop(CONF_UNIQUE_ID)
+    yaml_name = options.pop(CONF_NAME, None)
+
+    registry = er.async_get(hass)
+    if entity_id := registry.async_get_entity_id(
+        Platform.CLIMATE, DOMAIN, yaml_unique_id
+    ):
+        entity_entry = registry.async_get(entity_id)
+        registry.async_update_entity(
+            entity_id,
+            config_entry_id=entry.entry_id,
+            new_unique_id=entry.entry_id,
+            name=entity_entry.name or yaml_name,
+        )
+
+    hass.config_entries.async_update_entry(entry, options=options)
 
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -85,6 +110,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 async def config_entry_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update listener, called when the config entry options are changed."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Unhide the heater entity when the thermostat is removed."""
+    registry = er.async_get(hass)
+    entity_entry = registry.async_get(entry.options[CONF_HEATER])
+    if entity_entry and entity_entry.hidden_by == er.RegistryEntryHider.INTEGRATION:
+        registry.async_update_entity(entity_entry.entity_id, hidden_by=None)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

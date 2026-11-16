@@ -5,16 +5,14 @@
         "state_attributes": {
           "preset_mode": {
             "state": {
-              "comfort-1": "mdi:sofa",
-              "comfort-2": "mdi:sofa",
+              "comfort-1": "mdi:sofa-outline",
+              "comfort-2": "mdi:sofa-outline",
+              "away": "mdi:snowflake",
               "none": "mdi:power"
             }
           }
         }
       }
     }
-  },
-  "services": {
-    "reload": "mdi:reload"
   }
 }
