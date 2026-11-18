@@ -43,11 +43,11 @@ Si votre module n'apparaît pas quand vous ajoutez un thermostat, ouvrez une iss
 
 ## Installation
 
-### HACS
+### Marketplace
 
-[![Ouvrir votre instance Home Assistant et afficher ce dépôt dans HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=piitaya&repository=ha-pilot-wire&category=integration)
+[![Ouvrir votre instance Home Assistant et afficher ce dépôt dans le Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=piitaya&repository=ha-pilot-wire&category=integration)
 
-Ou dans HACS, ajoutez `https://github.com/piitaya/ha-pilot-wire` comme dépôt personnalisé de type « Intégration ». Téléchargez ensuite Pilot Wire et redémarrez Home Assistant.
+Ou cherchez « Pilot Wire » dans le Marketplace (HACS avant Home Assistant 2026.11). Téléchargez-la ensuite et redémarrez Home Assistant.
 
 ### Manuelle
 
