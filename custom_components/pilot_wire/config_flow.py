@@ -7,11 +7,14 @@ from typing import Any
 
 import voluptuous as vol
 
+from homeassistant.components.climate import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.components.select import ATTR_OPTIONS, DOMAIN as SELECT_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN, SensorDeviceClass
+from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.const import CONF_ENTITY_ID
 from homeassistant.core import HomeAssistant, State, split_entity_id
-from homeassistant.helpers import entity_registry as er, selector
+from homeassistant.helpers import config_validation as cv, entity_registry as er, selector
 from homeassistant.helpers.device import async_entity_id_to_device
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaCommonFlowHandler,
@@ -33,6 +36,17 @@ from .climate import (
 
 QUBINO_MANUFACTURER = "Qubino"
 QUBINO_PILOT_WIRE_MODEL = "ZMNHJD"
+
+# Thermostat imported from another integration, which hands over its entity ID
+IMPORT_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_HEATER): cv.entity_domain(HEATER_DOMAINS),
+        vol.Optional(CONF_TEMPERATURE_SENSOR): cv.entity_id,
+        vol.Optional(CONF_POWER_SENSOR): cv.entity_id,
+        vol.Optional(CONF_POWER_THRESHOLD): vol.Coerce(float),
+        vol.Optional(CONF_ENTITY_ID): cv.entity_domain(CLIMATE_DOMAIN),
+    }
+)
 
 OPTIONS_SCHEMA = {
     vol.Optional(CONF_TEMPERATURE_SENSOR): selector.EntitySelector(
@@ -118,6 +132,12 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
 
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
+
+    async def async_step_import(self, import_data: dict[str, Any]) -> ConfigFlowResult:
+        """Import a thermostat from another integration, like Qubino Wire Pilot."""
+        import_data = IMPORT_SCHEMA(import_data)
+        self._async_abort_entries_match({CONF_HEATER: import_data[CONF_HEATER]})
+        return self.async_create_entry(data=import_data)
 
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title and hide the wrapped entity if registered."""

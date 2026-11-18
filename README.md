@@ -91,3 +91,9 @@ This integration hides that light and translates the brightness for you:
 | Comfort          | 51 to 100% |
 
 When adding a thermostat, only lights from a Qubino device are listed.
+
+## Migrating from Qubino Wire Pilot
+
+Pilot Wire replaces [Qubino Wire Pilot](https://github.com/piitaya/home-assistant-qubino-wire-pilot). Update Qubino Wire Pilot to its latest version, install Pilot Wire and restart Home Assistant. Your thermostats are moved to Pilot Wire automatically, keeping their entity ID, name and area. Then remove the `qubino_wire_pilot` platforms from `configuration.yaml` if you used YAML, uninstall Qubino Wire Pilot and restart again.
+
+The "Comfort -1" and "Comfort -2" presets are always available in Pilot Wire.

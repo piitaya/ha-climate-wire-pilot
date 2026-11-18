@@ -91,3 +91,9 @@ Cette intégration masque cette lumière et convertit la luminosité pour vous :
 | Confort    | 51 à 100 %    |
 
 Quand vous ajoutez un thermostat, seules les lumières d'un appareil Qubino sont proposées.
+
+## Migrer depuis Qubino fil pilote
+
+Pilot Wire remplace [Qubino fil pilote](https://github.com/piitaya/home-assistant-qubino-wire-pilot). Mettez à jour Qubino fil pilote vers sa dernière version, installez Pilot Wire et redémarrez Home Assistant. Vos thermostats sont déplacés automatiquement vers Pilot Wire, en gardant leur entity ID, leur nom et leur pièce. Supprimez ensuite les plateformes `qubino_wire_pilot` de `configuration.yaml` si vous utilisiez le YAML, désinstallez Qubino fil pilote et redémarrez à nouveau.
+
+Les préréglages « Confort -1 » et « Confort -2 » sont toujours disponibles dans Pilot Wire.
