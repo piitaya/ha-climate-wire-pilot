@@ -47,7 +47,7 @@ If your module can't be picked when adding a thermostat, open an issue with the 
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=piitaya&repository=ha-pilot-wire&category=integration)
 
-Or in HACS, add `https://github.com/piitaya/ha-pilot-wire` as a custom repository with the "Integration" type. Then download Pilot Wire and restart Home Assistant.
+Or search "Pilot Wire" in HACS. Then download it and restart Home Assistant.
 
 ### Manual
 
